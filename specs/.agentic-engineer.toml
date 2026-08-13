@@ -1,0 +1,4 @@
+apiVersion = "agentic-engineer/v1"
+name = "gym-workout-tracker899"
+createdAt = "2026-08-13T07:18:17Z"
+idea = "A gym workout tracker where I can log exercises, sets, and weights and see progress over time"
