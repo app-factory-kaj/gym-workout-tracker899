@@ -2,7 +2,7 @@
   "name": "workout-api",
   "type": "service",
   "version": "0.1.0",
-  "language": "TBD",
+  "language": "Ballerina",
   "buildpack": "docker",
   "appPath": "workout-api",
   "entrypoint": "deployment/service",
@@ -20,6 +20,28 @@
     10,
     11
   ],
-  "dependencies": [],
-  "description": "Scaffolded from design.cell — enrich with this component's responsibility, language (org Tech stack default first), dependencies, and pinned skills."
+  "dependencies": [
+    {
+      "description": "Stores the Athlete's exercises, routines, sessions, sets, and unit preference.",
+      "kind": "platform-resource",
+      "name": "workout-db",
+      "resourceType": "postgres-cnpg"
+    },
+    {
+      "description": "Validates the bearer token the gateway forwards and resolves the caller's identity for scoping every record to that Athlete.",
+      "kind": "platform-resource",
+      "name": "workout-auth",
+      "parameters": {
+        "scopes": "openid profile email"
+      },
+      "resourceType": "thunder-app"
+    }
+  ],
+  "description": "Ballerina REST API owning all workout-tracking data: custom and built-in exercises, reusable routines, logged sessions and their sets, computed per-exercise progress trends and personal records, and the Athlete's unit preference. Every record is scoped to the signed-in caller. Does not render UI and issues no tokens itself — the gateway/IDP handle sign-in.",
+  "skillsPinned": [
+    "openapi-conventions",
+    "ballerina",
+    "api-management",
+    "thunder-authentication"
+  ]
 }

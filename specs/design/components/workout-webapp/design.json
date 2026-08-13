@@ -2,7 +2,7 @@
   "name": "workout-webapp",
   "type": "web-application",
   "version": "0.1.0",
-  "language": "TBD",
+  "language": "TypeScript",
   "buildpack": "docker",
   "appPath": "workout-webapp",
   "entrypoint": "deployment/web-application",
@@ -20,6 +20,26 @@
     10,
     11
   ],
-  "dependencies": [],
-  "description": "Scaffolded from design.cell — enrich with this component's responsibility, language (org Tech stack default first), dependencies, and pinned skills."
+  "dependencies": [
+    {
+      "description": "Calls the Workout Tracker API for routines, sessions, sets, exercises, progress trends, and the athlete's profile/unit preference.",
+      "kind": "component",
+      "name": "workout-api"
+    },
+    {
+      "description": "Signs the Athlete in via Thunder SSO and issues the token the SPA attaches to API calls.",
+      "kind": "platform-resource",
+      "name": "workout-auth",
+      "parameters": {
+        "scopes": "openid profile email"
+      },
+      "resourceType": "thunder-app"
+    }
+  ],
+  "description": "Single-page React app where an Athlete signs in, manages reusable workout routines, logs sessions and sets against them, browses workout history, and reviews per-exercise strength trends and personal records. Renders UI and calls workout-api for all persistence; holds no data of its own and performs no server-side logic.",
+  "skillsPinned": [
+    "wireframes",
+    "react-webapp",
+    "thunder-authentication"
+  ]
 }

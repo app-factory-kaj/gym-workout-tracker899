@@ -87,3 +87,31 @@ screen History "Athlete browses past sessions by date"
 
 screen ExerciseProgress "Athlete reviews a strength trend and personal record for one exercise"
   navbar "WorkoutTracker"
+  sidebar "Dashboard -> Dashboard | Routines -> Routines | History -> History | Progress -> ExerciseProgress | Settings -> Settings"
+  row
+    heading "Bench Press"
+    right
+    select "Exercise: Bench Press"
+  row
+    card "Personal record | 82.5 kg | heaviest single set"
+    card "Best est. 1RM | 95 kg | Epley formula"
+  chart "Weight over time" 600x260
+  table "Date | Weight (kg) | Reps | Est. 1RM"
+    row "Aug 12 | 65 | 6 | 78"
+    row "Aug 8 | 62.5 | 8 | 79"
+    row "Aug 1 | 60 | 8 | 76"
+
+screen Settings "Athlete sets unit preference and manages custom exercises"
+  navbar "WorkoutTracker"
+  sidebar "Dashboard -> Dashboard | Routines -> Routines | History -> History | Progress -> ExerciseProgress | Settings -> Settings"
+  heading "Settings"
+  row
+    select "Weight unit: Kilograms (kg)"
+  heading "Custom exercises"
+  table "Exercise | Custom | Remove"
+    row "Cable Crossover | Yes | Remove"
+    row "Bulgarian Split Squat | Yes | Remove"
+  input "New exercise name"
+  row
+    right
+    button "Add exercise" primary

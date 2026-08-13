@@ -1,8 +1,6 @@
 # Gym Workout Tracker — Design
 
-A single-page React app (`workout-webapp`) lets a signed-in Athlete manage routines, log workout sessions and sets, and review progress; it calls a Ballerina API (`workout-api`) that owns all persistence in a dedicated PostgreSQL database and validates every call against Thunder-issued tokens so each Athlete only ever sees their own data. 
-
-asdsadas
+A single-page React app (`workout-webapp`) lets a signed-in Athlete manage routines, log workout sessions and sets, and review progress; it calls a Ballerina API (`workout-api`) that owns all persistence in a dedicated PostgreSQL database and validates every call against Thunder-issued tokens so each Athlete only ever sees their own data.
 
 ## Context (C1)
 
@@ -112,4 +110,3 @@ sequenceDiagram
   API-->>Webapp: Trend points + personal record
   Webapp-->>Athlete: Render chart + PR
 ```
-
