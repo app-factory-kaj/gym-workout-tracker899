@@ -1,0 +1,544 @@
+openapi: 3.0.3
+info:
+  title: Workout Tracker API
+  version: 0.1.0
+  description: Exercises, routines, sessions, sets, progress trends, and profile for the Workout Tracker.
+servers:
+  - url: /
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    UserId:
+      name: X-User-Id
+      in: header
+      required: true
+      description: caller identity injected by the gateway from the validated token
+      schema: { type: string }
+    ExerciseId:
+      name: exerciseId
+      in: path
+      required: true
+      schema: { type: string }
+    RoutineId:
+      name: routineId
+      in: path
+      required: true
+      schema: { type: string }
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema: { type: string }
+    SetId:
+      name: setId
+      in: path
+      required: true
+      schema: { type: string }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, default: 20, maximum: 100 }
+    Offset:
+      name: offset
+      in: query
+      schema: { type: integer, default: 0 }
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: integer, description: HTTP or application error code }
+        message: { type: string, description: short human-readable label }
+        description: { type: string, description: detailed explanation }
+        moreInfo: { type: string, description: URI to documentation }
+    Exercise:
+      type: object
+      required: [id, name, isCustom]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        isCustom: { type: boolean }
+    ExerciseInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+    RoutineExercise:
+      type: object
+      required: [exerciseId, order]
+      properties:
+        exerciseId: { type: string }
+        order: { type: integer }
+    Routine:
+      type: object
+      required: [id, name, exercises]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        exercises:
+          type: array
+          items: { $ref: '#/components/schemas/RoutineExercise' }
+    RoutineInput:
+      type: object
+      required: [name, exercises]
+      properties:
+        name: { type: string }
+        exercises:
+          type: array
+          items: { $ref: '#/components/schemas/RoutineExercise' }
+    SetEntry:
+      type: object
+      required: [id, exerciseId, setNumber, reps, weightKg]
+      properties:
+        id: { type: string }
+        exerciseId: { type: string }
+        setNumber: { type: integer }
+        reps: { type: integer }
+        weightKg: { type: number }
+    SetEntryInput:
+      type: object
+      required: [exerciseId, setNumber, reps, weightKg]
+      properties:
+        exerciseId: { type: string }
+        setNumber: { type: integer }
+        reps: { type: integer }
+        weightKg: { type: number }
+    WorkoutSession:
+      type: object
+      required: [id, date, sets]
+      properties:
+        id: { type: string }
+        date: { type: string, format: date }
+        routineId: { type: string, nullable: true }
+        sets:
+          type: array
+          items: { $ref: '#/components/schemas/SetEntry' }
+    WorkoutSessionInput:
+      type: object
+      required: [date]
+      properties:
+        date: { type: string, format: date }
+        routineId: { type: string, nullable: true }
+    ProgressPoint:
+      type: object
+      required: [date, weightKg, reps, estimatedOneRepMax]
+      properties:
+        date: { type: string, format: date }
+        weightKg: { type: number }
+        reps: { type: integer }
+        estimatedOneRepMax: { type: number }
+    PersonalRecord:
+      type: object
+      required: [heaviestWeightKg, bestEstimatedOneRepMax]
+      properties:
+        heaviestWeightKg: { type: number }
+        bestEstimatedOneRepMax: { type: number }
+    ExerciseProgress:
+      type: object
+      required: [exerciseId, trend, personalRecord]
+      properties:
+        exerciseId: { type: string }
+        trend:
+          type: array
+          items: { $ref: '#/components/schemas/ProgressPoint' }
+        personalRecord: { $ref: '#/components/schemas/PersonalRecord' }
+    UserProfile:
+      type: object
+      required: [unitPreference]
+      properties:
+        unitPreference: { type: string, enum: [kg, lb] }
+    UserProfileInput:
+      type: object
+      required: [unitPreference]
+      properties:
+        unitPreference: { type: string, enum: [kg, lb] }
+paths:
+  /exercises:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      operationId: listExercises
+      summary: List exercises available to the Athlete
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Paged list of exercises
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count, data]
+                properties:
+                  count: { type: integer, description: total matching items }
+                  next: { type: string, nullable: true, description: relative URI of the next page }
+                  previous: { type: string, nullable: true, description: relative URI of the previous page }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Exercise' }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+    post:
+      operationId: createExercise
+      summary: Add a custom exercise
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: '#/components/schemas/ExerciseInput' } }
+      responses:
+        '201':
+          description: Exercise created
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Exercise' } }
+        '400':
+          description: Invalid input
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+  /exercises/{exerciseId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - $ref: '#/components/parameters/ExerciseId'
+    delete:
+      operationId: deleteExercise
+      summary: Delete a custom exercise
+      responses:
+        '204':
+          description: Exercise deleted
+        '404':
+          description: Exercise not found
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+  /exercises/{exerciseId}/progress:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - $ref: '#/components/parameters/ExerciseId'
+    get:
+      operationId: getExerciseProgress
+      summary: Get strength trend and personal record for an exercise
+      responses:
+        '200':
+          description: Progress trend and personal record
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/ExerciseProgress' } }
+        '404':
+          description: Exercise not found
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+  /routines:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      operationId: listRoutines
+      summary: List the Athlete's routines
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Paged list of routines
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count, data]
+                properties:
+                  count: { type: integer, description: total matching items }
+                  next: { type: string, nullable: true, description: relative URI of the next page }
+                  previous: { type: string, nullable: true, description: relative URI of the previous page }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Routine' }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+    post:
+      operationId: createRoutine
+      summary: Create a reusable routine
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: '#/components/schemas/RoutineInput' } }
+      responses:
+        '201':
+          description: Routine created
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Routine' } }
+        '400':
+          description: Invalid input
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+  /routines/{routineId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - $ref: '#/components/parameters/RoutineId'
+    get:
+      operationId: getRoutine
+      summary: Get a routine
+      responses:
+        '200':
+          description: Routine
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Routine' } }
+        '404':
+          description: Routine not found
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+    patch:
+      operationId: updateRoutine
+      summary: Update a routine's name or exercise list
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: '#/components/schemas/RoutineInput' } }
+      responses:
+        '200':
+          description: Updated routine
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Routine' } }
+        '400':
+          description: Invalid input
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '404':
+          description: Routine not found
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+    delete:
+      operationId: deleteRoutine
+      summary: Delete a routine
+      responses:
+        '204':
+          description: Routine deleted
+        '404':
+          description: Routine not found
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+  /sessions:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      operationId: listSessions
+      summary: Browse logged workout sessions by date
+      parameters:
+        - name: date
+          in: query
+          schema: { type: string, format: date }
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Paged list of sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count, data]
+                properties:
+                  count: { type: integer, description: total matching items }
+                  next: { type: string, nullable: true, description: relative URI of the next page }
+                  previous: { type: string, nullable: true, description: relative URI of the previous page }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/WorkoutSession' }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+    post:
+      operationId: createSession
+      summary: Start a session, optionally from a routine
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: '#/components/schemas/WorkoutSessionInput' } }
+      responses:
+        '201':
+          description: Session created
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/WorkoutSession' } }
+        '400':
+          description: Invalid input
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+  /sessions/{sessionId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - $ref: '#/components/parameters/SessionId'
+    get:
+      operationId: getSession
+      summary: Get a logged session with its sets
+      responses:
+        '200':
+          description: Session
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/WorkoutSession' } }
+        '404':
+          description: Session not found
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+    delete:
+      operationId: deleteSession
+      summary: Delete a logged session
+      responses:
+        '204':
+          description: Session deleted
+        '404':
+          description: Session not found
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+  /sessions/{sessionId}/sets:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - $ref: '#/components/parameters/SessionId'
+    post:
+      operationId: addSetEntry
+      summary: Log a set's reps and weight for an exercise in this session
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: '#/components/schemas/SetEntryInput' } }
+      responses:
+        '201':
+          description: Set logged
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/SetEntry' } }
+        '400':
+          description: Invalid input
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '404':
+          description: Session not found
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+  /sessions/{sessionId}/sets/{setId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - $ref: '#/components/parameters/SessionId'
+      - $ref: '#/components/parameters/SetId'
+    patch:
+      operationId: updateSetEntry
+      summary: Correct a logged set's reps or weight
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: '#/components/schemas/SetEntryInput' } }
+      responses:
+        '200':
+          description: Updated set
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/SetEntry' } }
+        '400':
+          description: Invalid input
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '404':
+          description: Set not found
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+    delete:
+      operationId: deleteSetEntry
+      summary: Delete a logged set
+      responses:
+        '204':
+          description: Set deleted
+        '404':
+          description: Set not found
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+  /me:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      operationId: getProfile
+      summary: Get the Athlete's profile and unit preference
+      responses:
+        '200':
+          description: Profile
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/UserProfile' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+    patch:
+      operationId: updateProfile
+      summary: Update the Athlete's preferred weight unit
+      requestBody:
+        required: true
+        content:
+          application/json: { schema: { $ref: '#/components/schemas/UserProfileInput' } }
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/UserProfile' } }
+        '400':
+          description: Invalid input
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }
+        '401':
+          description: Not authenticated
+          content:
+            application/json: { schema: { $ref: '#/components/schemas/Error' } }

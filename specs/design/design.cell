@@ -1,0 +1,16 @@
+title Gym Workout Tracker
+
+phase 1
+
+component workout-webapp as "Workout Tracker Webapp" web-application [stories: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+component workout-api as "Workout Tracker API" service [stories: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+component workout-db as "Workout Database" database [stories: 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
+east workout-auth as "Thunder Auth" identity-server
+
+north -> workout-webapp
+
+workout-webapp -> workout-api
+workout-webapp -> workout-auth
+workout-api -> workout-auth
+workout-api -> workout-db

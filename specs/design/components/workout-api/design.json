@@ -1,0 +1,25 @@
+{
+  "name": "workout-api",
+  "type": "service",
+  "version": "0.1.0",
+  "language": "TBD",
+  "buildpack": "docker",
+  "appPath": "workout-api",
+  "entrypoint": "deployment/service",
+  "exposure": "intranet",
+  "stories": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "dependencies": [],
+  "description": "Scaffolded from design.cell — enrich with this component's responsibility, language (org Tech stack default first), dependencies, and pinned skills."
+}
