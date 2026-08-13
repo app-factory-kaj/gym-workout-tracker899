@@ -20,23 +20,33 @@
     10,
     11
   ],
+  "description": "Single-page React app where an Athlete signs in, manages reusable workout routines, logs sessions and sets against them, browses workout history, and reviews per-exercise strength trends and personal records. Renders UI and calls workout-api for all persistence; holds no data of its own and performs no server-side logic.",
   "dependencies": [
     {
-      "description": "Calls the Workout Tracker API for routines, sessions, sets, exercises, progress trends, and the athlete's profile/unit preference.",
       "kind": "component",
-      "name": "workout-api"
+      "name": "workout-api",
+      "description": "Calls the Workout Tracker API for routines, sessions, sets, exercises, progress trends, and the athlete's profile/unit preference.",
+      "wiring": {
+        "endpoint": {
+          "component": "gym-workout-tracker899-workout-api",
+          "name": "http",
+          "visibility": "project",
+          "envBindings": {
+            "address": "WORKOUT_API_URL"
+          }
+        }
+      }
     },
     {
-      "description": "Signs the Athlete in via Thunder SSO and issues the token the SPA attaches to API calls.",
       "kind": "platform-resource",
       "name": "workout-auth",
+      "description": "Signs the Athlete in via Thunder SSO and issues the token the SPA attaches to API calls.",
+      "resourceType": "thunder-app",
       "parameters": {
         "scopes": "openid profile email"
-      },
-      "resourceType": "thunder-app"
+      }
     }
   ],
-  "description": "Single-page React app where an Athlete signs in, manages reusable workout routines, logs sessions and sets against them, browses workout history, and reviews per-exercise strength trends and personal records. Renders UI and calls workout-api for all persistence; holds no data of its own and performs no server-side logic.",
   "skillsPinned": [
     "wireframes",
     "react-webapp",
